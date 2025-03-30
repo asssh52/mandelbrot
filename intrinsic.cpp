@@ -53,61 +53,21 @@ void drawSet(){
 
         start = clock();
 
-
         __m256 iter_const = _mm256_set_ps(7.0f, 6.0f, 5.0f, 4.0f, 3.0f, 2.0f, 1.0f, 0.0f);
         __m256 x_res      = _mm256_set1_ps(X_RES);
         __m256 x_off      = _mm256_set1_ps(X_OFF);
         __m256 x_scl      = _mm256_set1_ps(X_SCL);
-
-        __m256 y_res      = _mm256_set1_ps(Y_RES);
-        __m256 y_off      = _mm256_set1_ps(Y_OFF);
-        __m256 y_scl      = _mm256_set1_ps(Y_SCL);
 
         for (int y = 0; y < Y_RES; y++){
             __m256  y_arg = _mm256_set1_ps((((float)y)/ Y_RES - Y_OFF) * Y_SCL);
 
             for (int x = 0; x < X_RES; x += XMM_FLOAT_SIZE){
                 __m256  x_arg = _mm256_set1_ps(x);
-
-                if ((x == 0 || x == 8)&& y == 0){
-                    for (int i = 0; i < 8; i++){
-                        printf("%d:%f ", i, ((float*)&x_arg)[i]);
-                    }
-                    printf("\n");
-                }
                         x_arg = _mm256_add_ps(x_arg, iter_const);
-
-
-                if ((x == 0 || x == 8) && y == 0){
-                    for (int i = 0; i < 8; i++){
-                        printf("%d:%f ", i, ((float*)&x_arg)[i]);
-                    }
-                    printf("\n");
-                }
                         x_arg = _mm256_div_ps(x_arg, x_res);
-
-                if ((x == 0 || x == 8) && y == 0){
-                    for (int i = 0; i < 8; i++){
-                        printf("%d:%f ", i, ((float*)&x_arg)[i]);
-                    }
-                    printf("\n");
-                }
                         x_arg = _mm256_sub_ps(x_arg, x_off);
-
-                if ((x == 0 || x == 8) && y == 0){
-                    for (int i = 0; i < 8; i++){
-                        printf("%d:%d ", i, ((int*)&x_arg)[i]);
-                    }
-                    printf("\n");
-                }
                         x_arg = _mm256_mul_ps(x_arg, x_scl);
 
-                if ((x == 0 || x == 8)&& y == 0){
-                    for (int i = 0; i < 8; i++){
-                        printf("%d:%d ", i, ((int*)&x_arg)[i]);
-                    }
-                    printf("\n");
-                }
                 __m256 iter = _mm256_setzero_ps();
                 evalPoint(x_arg, y_arg, (__m256i*)&iter);
 
@@ -147,6 +107,7 @@ void drawSet(){
 inline void evalPoint(__m256 x_arg, __m256 y_arg, volatile __m256i* iter){
     __m256 x = _mm256_set1_ps(0);
     __m256 y = _mm256_set1_ps(0);
+    __m256i i256 = _mm256_set1_epi32(I_MAX);
 
     _mm256_storeu_si256((__m256i*)&x, (__m256i)x_arg);
     _mm256_storeu_si256((__m256i*)&y, (__m256i)y_arg);
@@ -168,6 +129,11 @@ inline void evalPoint(__m256 x_arg, __m256 y_arg, volatile __m256i* iter){
 
         _mm256_storeu_si256((__m256i*)&x, (__m256i)_mm256_add_ps(_mm256_sub_ps(x_2, y_2), x_arg));
         _mm256_storeu_si256((__m256i*)&y, (__m256i)_mm256_add_ps(_mm256_add_ps(x_y, x_y), y_arg));
+    }
+
+    __m256i iter_cmp_bound = _mm256_cmpeq_epi32(*iter, i256);
+    for (int i = 0; i < XMM_FLOAT_SIZE; i++){
+        if (((int*)&iter_cmp_bound)[i]) ((int*)iter)[i] = 0;
     }
 }
 
