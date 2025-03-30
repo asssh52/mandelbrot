@@ -53,35 +53,30 @@ void drawSet(){
 
         start = clock();
 
-        __m256 iter_const = _mm256_set_ps(7.0f, 6.0f, 5.0f, 4.0f, 3.0f, 2.0f, 1.0f, 0.0f);
-        __m256 x_res      = _mm256_set1_ps(X_RES);
-        __m256 x_off      = _mm256_set1_ps(X_OFF);
-        __m256 x_scl      = _mm256_set1_ps(X_SCL);
+        __m256 iter_const    = _mm256_set_ps(7.0f, 6.0f, 5.0f, 4.0f, 3.0f, 2.0f, 1.0f, 0.0f);
+        __m256 x_res         = _mm256_set1_ps(X_RES);
+        __m256 x_off         = _mm256_set1_ps(X_OFF);
+        __m256 x_scl         = _mm256_set1_ps(X_SCL);
+
+        __m256 x_offset_m256 = _mm256_set1_ps(x_offset);
+        __m256 scale_m256    = _mm256_set1_ps(scale);
 
         for (int y = 0; y < Y_RES; y++){
-            __m256  y_arg = _mm256_set1_ps((((float)y)/ Y_RES - Y_OFF) * Y_SCL);
+            __m256  y_arg = _mm256_set1_ps((((float)y)/ Y_RES - Y_OFF + y_offset) * Y_SCL * scale);
 
             for (int x = 0; x < X_RES; x += XMM_FLOAT_SIZE){
                 __m256  x_arg = _mm256_set1_ps(x);
                         x_arg = _mm256_add_ps(x_arg, iter_const);
                         x_arg = _mm256_div_ps(x_arg, x_res);
                         x_arg = _mm256_sub_ps(x_arg, x_off);
+                        x_arg = _mm256_add_ps(x_arg, x_offset_m256);
                         x_arg = _mm256_mul_ps(x_arg, x_scl);
+                        x_arg = _mm256_mul_ps(x_arg, scale_m256);
 
                 __m256 iter = _mm256_setzero_ps();
                 evalPoint(x_arg, y_arg, (__m256i*)&iter);
 
-                if ((x == 0 || x == 8) && y == 0){
-                    for (int i = 0; i < 8; i++){
-                        printf("%d:%d ", i, ((int*)&iter)[i]);
-                    }
-                    printf("\n\n\n\n");
-                }
-
-
                 int* iter_int = (int*)&iter;
-
-                //printf("1:%d, 2:%d, 3:%d, 4:%d, 5:%d, 6:%d, 7:%d, 8:%d\n", iter_int[0], iter_int[1], iter_int[2], iter_int[3], iter_int[4], iter_int[5], iter_int[6], iter_int[7]);
 
                 for (int k = 0; k < XMM_FLOAT_SIZE; k++){
                     sf::Color sfColor((255 - (iter_int[k] * 16)) % 255, (255 - (iter_int[k] * 16)) % 255, (255 - (iter_int[k] * 16)) % 255);

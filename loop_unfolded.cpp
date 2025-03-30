@@ -55,11 +55,11 @@ void drawSet(){
         float y_ar = 0;
 
         for (int y = 0; y < Y_RES; y++){
-            y_ar = (((float)y)/ Y_RES - Y_OFF) * Y_SCL;
+            y_ar = (((float)y)/ Y_RES - Y_OFF + y_offset) * Y_SCL * scale;
             for (int i = 0; i < XMM_FLOAT_SIZE; i++) y_arg[i] = y_ar;
 
             for (int x = 0; x < X_RES; x += XMM_FLOAT_SIZE){
-                for (int j = 0; j < XMM_FLOAT_SIZE; j++) x_arg[j] = (((float)x + j)/ X_RES - X_OFF) * X_SCL;
+                for (int j = 0; j < XMM_FLOAT_SIZE; j++) x_arg[j] = (((float)x + j)/ X_RES - X_OFF + x_offset) * X_SCL * scale;
                 int iter[XMM_FLOAT_SIZE] = {};
                 evalPoint(x_arg, y_arg, iter);
 
